@@ -1,27 +1,53 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, hideLinkEmbed } = require("discord.js");
 
 // Create client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+const prefix = "$";
+let replyFlag = false;
 
 // Ready Listener
 client.on("ready", () => {
     console.log("Code Blue Bot is Online!");
-
-    client.user.setActivity("I'm watching you Wazowski, always watching.", {type: "WATCHING"})
+    client.user.setActivity("I'm watching you Wazowski, always watching.", { type: "WATCHING" })
 });
 
 // Message Listener
-client.on("messageCreate", message => {
-    try {
-        if (message.author.bot) return;
+client.on("messageCreate", async message => {
+    // Ignore messages from bots
+    if (message.author.bot) return;
 
-        // message.channel.send("blah blah blah blah blah blah blah");
-        message.reply("blah blah blah blah blah blah blah");
+    // Command messages for server owner
+    if (message.content.startsWith(prefix) && message.guild.ownerId === message.author.id) {
+        const command = message.content.slice(prefix.length).toUpperCase();
 
-        console.log("Replied to message creation.")
-    } catch (err) {
-        console.error(err)
+        try {
+
+            if (command === "REPLYFLAG") {
+                replyFlag = !replyFlag;
+                message.reply(`Reply flag turned ${replyFlag ? "on" : "off"}`)
+            } else {
+                message.reply("Unkown command.")
+            }
+
+        } catch (err) {
+            message.reply("An error has occurred, please contact server admin.")
+            console.error(err);
+        }
+
+    } else {
+        // Ignore messages from server owner
+        if (message.guild.ownerId === message.author.id || !replyFlag) return;
+        try {
+
+            // message.channel.send("blah blah blah blah blah blah blah");
+            message.reply("blah blah blah blah blah blah blah");   
+            console.log("Replied to message creation.")
+
+        } catch (err) {
+            message.reply("An error has occurred, please contact server admin.")
+            console.error(err);
+        }
     }
 });
 
